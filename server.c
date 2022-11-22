@@ -24,6 +24,7 @@ int components = 0;
 static sem_t sync_sem;
 char signal[10] = {0}; 
 
+/*공유 메모리 관리용 리스트 노드*/
 typedef struct memory_segment {
     void* memory_segment;
     struct memory_segment *next;
@@ -31,7 +32,7 @@ typedef struct memory_segment {
 
 void main() {
     int shmid;
-    mem_seg *head;
+    mem_seg *head;  // 새로운 공유 메모리가 생길 때마다 하나 씩 추가
     key_t key = SHMKEY0;
     void *memory_segment=NULL;
     sem_init(&sync_sem, 0, 1);
