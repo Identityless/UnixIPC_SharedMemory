@@ -37,9 +37,6 @@ void main() {
         exit(0);
     }
 
-    memcpy(&num, (int*)memory_segment, memsize);
-    printf("data : %d\n", num);
-
 
     if((memory_segment=shmat(shmid,NULL,0))==(void*)-1){
             printf("shmat failed\n");
