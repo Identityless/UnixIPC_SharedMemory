@@ -48,7 +48,7 @@ void main() {
         if((shmid[i]=shmget(keys[i],sizeof(int),IPC_CREAT|0666))==-1) {
             printf("shmget faild. (point 1)\n");
         }
-        if((memory_segment=shmat(shmid[clientnum],NULL,0))==(void*)-1) {    // shared moemory 포인터를 바꿔가면서 검사
+        if((memory_segment=shmat(shmid[i],NULL,0))==(void*)-1) {    // shared moemory 포인터를 바꿔가면서 검사
             printf("shmat failed. (point 2)\n");
             exit(0);
         }
