@@ -16,9 +16,12 @@
 #define SHMKEY7 (key_t)60117;
 #define SHMKEY8 (key_t)60118;
 #define SHMKEY9 (key_t)60119;
-#define MEMSIZE 4;
+#define NUM_KEYS 10;
+#define MEMSIZE 8;
+#define NUM_THREADS 3;
 
-void provide(void *memory_segment);
+void provide(void *memory_segment, int clientnum);
+void* componentsFactory();
 
 int components = 0;
 static sem_t sync_sem;
@@ -31,54 +34,74 @@ typedef struct memory_segment {
 } mem_seg;
 
 void main() {
-    int shmid;
-    mem_seg *head;  // 새로운 공유 메모리가 생길 때마다 하나 씩 추가
-    key_t key = SHMKEY0;
+    int shmid[10];
+    int initvalue = -1;
+    int clientnum=0;
+    int memsize = MEMSIZE;
+    key_t keys[] = {(key_t)60110, (key_t)60111, (key_t)60112, (key_t)60113, (key_t)60114, (key_t)60115, (key_t)60116, (key_t)60117, (key_t)60118, (key_t)60119}; // 이거 외 상수로 하믄 않됨?
+    pthread_t threads[3];
+    int rc;
     void *memory_segment=NULL;
     sem_init(&sync_sem, 0, 1);
 
-    if((shmid=shmget(key,sizeof(int),IPC_CREAT|0666))==-1) {
-        printf("shmget faild\n");
+    for(int i = 0 ; i < 10 ; i++) {
+        if((shmid[i]=shmget(keys[i],sizeof(int),IPC_CREAT|0666))==-1) {
+            printf("shmget faild. (point 1)\n");
+        }
+        if((memory_segment=shmat(shmid[clientnum],NULL,0))==(void*)-1) {    // shared moemory 포인터를 바꿔가면서 검사
+            printf("shmat failed. (point 2)\n");
+            exit(0);
+        }
+        memcpy((int*)memory_segment, &initvalue, memsize);
     }
 
-    if((memory_segment=shmat(shmid,NULL,0))==(void*)-1){
-        printf("shmat failed\n");
-        exit(0);
+    for(int i = 0 ; i < 3 ; i++) {
+        printf("In main : creating thread %d\n", i);
+        rc = pthread_create(&threads[i], NULL, componentsFactory, NULL);
+        if(rc) {
+            printf("[ERROR] : return code from pthread_create is %d\n", rc);
+            exit(-1);
+        }
     }
 
     while(1) {
-        provide(memory_segment);
-    }
-
-    if((memory_segment=shmat(shmid,NULL,0))==(void*)-1){
-            printf("shmat failed\n");
+        if((memory_segment=shmat(shmid[clientnum],NULL,0))==(void*)-1) {    // shared moemory 포인터를 바꿔가면서 검사
+            printf("shmat failed. (point 3, clientnum : %d)\n", clientnum);
             exit(0);
+        }
+        provide(memory_segment, clientnum);
+        clientnum = ++clientnum % 10;
     }
 
 }
 
-void provide(void *memory_segment) {
-    int buffer = 0;
+void provide(void *memory_segment, int clientnum) {
+    printf("Rotate num : %d\n", clientnum);
+    int buffer = *(int*)memory_segment;
     int memsize = MEMSIZE;
-    if(components > 0) {
-        sem_trywait(&sync_sem);
+    if(components > 0 && buffer < 5) {
+        sem_wait(&sync_sem);
         components--;
         sem_post(&sync_sem);
         buffer++;
         memcpy((int*)memory_segment, &buffer, memsize);
         buffer--;
     }
+    sleep(1);
 }
 
 void* componentsFactory() {
     srand(time(NULL));
     int productivity = rand()%4+5;
 
-    if(components < 20) {
-        sem_wait(&sync_sem);
-        components++;
-        sem_post(&sync_sem);
-    }
+    while(1){
+        if(components < 20) {
+            sem_wait(&sync_sem);
+            components++;
+            sem_post(&sync_sem);
+            printf("Thread : Component Supplied, (Quentity : %d)\n", components);
+        }
 
-    sleep(productivity);
+        sleep(productivity);
+    }
 }
