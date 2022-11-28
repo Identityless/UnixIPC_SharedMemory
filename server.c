@@ -6,19 +6,7 @@
 #include <string.h>
 #include <semaphore.h>
 
-#define SHMKEY0 (key_t)60110;
-#define SHMKEY1 (key_t)60111;
-#define SHMKEY2 (key_t)60112;
-#define SHMKEY3 (key_t)60113;
-#define SHMKEY4 (key_t)60114;
-#define SHMKEY5 (key_t)60115;
-#define SHMKEY6 (key_t)60116;
-#define SHMKEY7 (key_t)60117;
-#define SHMKEY8 (key_t)60118;
-#define SHMKEY9 (key_t)60119;
-#define NUM_KEYS 10;
-#define MEMSIZE 8;
-#define NUM_THREADS 3;
+#define MEMSIZE 4;
 
 void provide(void *memory_segment, int clientnum);
 void* componentsFactory();
