@@ -7,16 +7,6 @@
 #include <semaphore.h>
 #include <stdbool.h>
 
-#define SHMKEY0 (key_t)60110;
-#define SHMKEY1 (key_t)60111;
-#define SHMKEY2 (key_t)60112;
-#define SHMKEY3 (key_t)60113;
-#define SHMKEY4 (key_t)60114;
-#define SHMKEY5 (key_t)60115;
-#define SHMKEY6 (key_t)60116;
-#define SHMKEY7 (key_t)60117;
-#define SHMKEY8 (key_t)60118;
-#define SHMKEY9 (key_t)60119;
 #define MEMSIZE 4;
 
 void checkUsableKey();
@@ -49,30 +39,30 @@ void main()
 
     checkUsableKey();
     choiceKey(&key);
-    printf("point 1\n");
+    //printf("point 1\n");
 
     if (sem_init(&sync_sem, 0, 1) == -1)
     {
         perror("sem_init");
         exit(1);
     }
-    printf("point 2\n");
+    //printf("point 2\n");
 
     if ((shmid = shmget(key, sizeof(int), IPC_CREAT | 0666)) == -1)
     {
         printf("shmget faild\n");
     }
-    printf("point 3\n");
+    //printf("point 3\n");
 
     if ((memory_segment = shmat(shmid, NULL, 0)) == (void *)-1)
     {
         printf("shmat failed\n");
         exit(0);
     }
-    printf("point 4\n");
+    //printf("point 4\n");
 
     memcpy((int *)memory_segment, &initsetval, sizeof(int));
-    printf("point 5\n");
+    //printf("point 5\n");
 
     pthread_t thread[3];
     Car *headCar = (Car *)malloc(sizeof(Car));
@@ -84,7 +74,7 @@ void main()
         printf("ERROR code is %d\n", err_code);
         exit(1);
     }
-    printf("point 6\n");
+    //printf("point 6\n");
     err_code = 0;
     err_code = pthread_create(&thread[1], NULL, paintCar, (void *)headCar); // 차를 도색한다.
     if (err_code)
@@ -92,23 +82,24 @@ void main()
         printf("ERROR code is %d\n", err_code);
         exit(1);
     }
-    printf("point 7\n");
+    //printf("point 7\n");
     err_code = 0;
     err_code = pthread_create(&thread[2], NULL, inspectCar, (void *)headCar); // 차를 검사한 후 출고한다.
-    printf("point 8\n");
+    //printf("point 8\n");
     if (err_code)
     {
         printf("ERROR code is %d\n", err_code);
         exit(1);
     }
-    printf("point 9\n");
+    //printf("point 9\n");
     
     int buffer;
-    printf("point 8-1\n");
+    //printf("point 10\n");
     while (1)
     {
         buffer = *(int*)memory_segment;
-        printf("point sex, buffer : %d\n", buffer);
+        printf("check buffer : %d\n", buffer);
+        //printf("check components : %d\n", components);
 
         if (components < 10 && buffer > 0)
         {
@@ -122,28 +113,6 @@ void main()
         sleep(3);
     }
 
-}
-
-void getComponents(void *memory_segment)
-{
-    int* buffer;
-    printf("point 8-1\n");
-    while (1)
-    {
-        memcpy(buffer, memory_segment, sizeof(int));
-        printf("point sex, buffer : %d\n", *buffer);
-
-        if (components < 10 && *buffer >= 0)
-        {
-            printf("component get ! \n");
-            sem_wait(&sync_sem);
-            components++;
-            sem_post(&sync_sem);
-            //buffer--;
-            memcpy(&memory_segment, buffer, sizeof(int));
-        }
-        sleep(3);
-    }
 }
 
 void choiceKey(key_t *key)
