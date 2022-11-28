@@ -79,7 +79,7 @@ void provide(void *memory_segment, int clientnum) {
     printf("Rotate num : %d\n", clientnum);
     int buffer = *(int*)memory_segment;
     int memsize = MEMSIZE;
-    if(components > 0 && buffer < 5) {
+    if(components > 0 && buffer < 5 && buffer != -1) {
         sem_wait(&sync_sem);
         components--;
         sem_post(&sync_sem);
