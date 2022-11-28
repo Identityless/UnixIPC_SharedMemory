@@ -18,15 +18,17 @@
 #define MEMSIZE 4;
 
 void checkUsableKey();
+void choiceKey(key_t *key);
 
 void main() {
     int msg;
     int memsize = MEMSIZE;
     int shmid;
-    key_t key = SHMKEY0;
+    key_t key;
     void *memory_segment=NULL;
 
     checkUsableKey();
+    choiceKey(&key);
 
     if((shmid=shmget(key,sizeof(int),IPC_CREAT|0666))==-1) {
         printf("shmget faild\n");
@@ -37,6 +39,15 @@ void main() {
         exit(0);
     }
 
+}
+
+void choiceKey(key_t *key) {
+    int buffer = 0;
+
+    printf("사용할 키 입력 : ");
+    scanf("%d", &buffer);
+
+    *key = (key_t)buffer;
 }
 
 void checkUsableKey() {
