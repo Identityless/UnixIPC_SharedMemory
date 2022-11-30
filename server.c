@@ -15,11 +15,6 @@ int components = 0;
 static sem_t sync_sem;
 char signal[10] = {0}; 
 
-/*공유 메모리 관리용 리스트 노드*/
-typedef struct memory_segment {
-    void* memory_segment;
-    struct memory_segment *next;
-} mem_seg;
 
 void main() {
     int shmid[10];
@@ -73,9 +68,8 @@ void provide(void *memory_segment, int clientnum) {
         sem_post(&sync_sem);
         buffer++;
         memcpy((int*)memory_segment, &buffer, memsize);
-        buffer--;
     }
-    sleep(1);
+    usleep(1000);
 }
 
 void* componentsFactory() {
