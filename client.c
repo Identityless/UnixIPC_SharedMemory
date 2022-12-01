@@ -6,6 +6,7 @@
 #include <string.h>
 #include <semaphore.h>
 #include <stdbool.h>
+#include <time.h>
 
 #define MEMSIZE 4;
 
@@ -16,6 +17,7 @@ void *makeCar(void *ptr);
 void *paintCar(void *ptr);
 void *inspectCar(void *ptr);
 void getComponents();
+long calDuration(struct timespec bt, struct timespec nt);
 
 static sem_t sync_sem;
 int components = 0;
@@ -27,6 +29,12 @@ typedef struct Car
     bool isInspected;
     struct Car *next;
 } Car;
+
+typedef struct product {
+    int components;
+    struct timespec tp;
+} Product;
+
 
 void main()
 {
@@ -93,26 +101,40 @@ void main()
     }
     //printf("point 9\n");
     
-    int buffer;
+    Product* buffer;
+    struct timespec ctp;
     //printf("point 10\n");
     while (1)
     {
-        buffer = *(int*)memory_segment;
-        printf("check buffer : %d\n", buffer);
+        buffer = (Product*)memory_segment;
+        clock_gettime(CLOCK_MONOTONIC, &ctp);
+        printf("check buffer : %d\n", buffer->components);
         //printf("check components : %d\n", components);
 
-        if (components < 10 && buffer > 0)
+        if (components < 10 && buffer->components > 0)
         {
             printf("component get ! \n");
             sem_wait(&sync_sem);
             components++;
             sem_post(&sync_sem);
-            buffer--;
-            memcpy((int*)memory_segment, &buffer, sizeof(int));
+            buffer->components--;
+            memcpy((Product*)memory_segment, buffer, sizeof(Product));
+            
+            long duration = calDuration(buffer->tp, ctp);
+            printf("Duration : %ld\n", duration);
         }
         sleep(3);
     }
 
+}
+
+long calDuration(struct timespec bt, struct timespec nt) {
+    //long secDuration = nt.tv_sec-bt.tv_sec;
+    long nsecDuratioin = nt.tv_nsec-bt.tv_nsec;
+    if(nsecDuratioin < 0) {
+        nsecDuratioin = 1000000000l + nsecDuratioin;
+    }
+    return nsecDuratioin;
 }
 
 void choiceKey(key_t *key)
