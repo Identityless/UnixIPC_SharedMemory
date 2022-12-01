@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <semaphore.h>
+#include <time.h>
 
 #define MEMSIZE 4;
 
@@ -14,6 +15,11 @@ void* componentsFactory();
 int components = 0;
 static sem_t sync_sem;
 char signal[10] = {0}; 
+
+typedef struct product {
+    int components;
+    struct timespec tp;
+} Product;
 
 
 void main() {
@@ -25,17 +31,19 @@ void main() {
     pthread_t threads[3];
     int rc;
     void *memory_segment=NULL;
+    Product initstate;
+    initstate.components = initvalue;
     sem_init(&sync_sem, 0, 1);
 
     for(int i = 0 ; i < 10 ; i++) {
-        if((shmid[i]=shmget(keys[i],sizeof(int),IPC_CREAT|0666))==-1) {
+        if((shmid[i]=shmget(keys[i],sizeof(Product),IPC_CREAT|0666))==-1) {
             printf("shmget faild. (point 1)\n");
         }
         if((memory_segment=shmat(shmid[i],NULL,0))==(void*)-1) {    // shared moemory 포인터를 바꿔가면서 검사
             printf("shmat failed. (point 2)\n");
             exit(0);
         }
-        memcpy((int*)memory_segment, &initvalue, memsize);
+        memcpy((Product*)memory_segment, &initvalue, memsize);
     }
 
     for(int i = 0 ; i < 3 ; i++) {
@@ -59,15 +67,19 @@ void main() {
 }
 
 void provide(void *memory_segment, int clientnum) {
+    Product product;
+    product.components = components;
     printf("Rotate num : %d\n", clientnum);
-    int buffer = *(int*)memory_segment;
-    int memsize = MEMSIZE;
-    if(components > 0 && buffer < 3 && buffer != -1) {
+    Product* buffer = (Product*)memory_segment;
+    int bufferquantity = buffer->components;
+    int memsize = sizeof(Product);
+    if(components > 0 && bufferquantity < 3 && bufferquantity != -1) {
         sem_wait(&sync_sem);
         components--;
         sem_post(&sync_sem);
-        buffer++;
-        memcpy((int*)memory_segment, &buffer, memsize);
+        buffer->components++;
+        clock_gettime(CLOCK_MONOTONIC, &buffer->tp);
+        memcpy((Product*)memory_segment, buffer, memsize);
     }
     usleep(1000);
 }
