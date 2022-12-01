@@ -106,9 +106,9 @@ void main()
     //printf("point 10\n");
     while (1)
     {
-        buffer = (Product*)memory_segment;
         clock_gettime(CLOCK_MONOTONIC, &ctp);
-        printf("check buffer : %d\n", buffer->components);
+        buffer = (Product*)memory_segment;
+        //printf("check buffer : %d\n", buffer->components);
         //printf("check components : %d\n", components);
 
         if (components < 10 && buffer->components > 0)
@@ -119,22 +119,22 @@ void main()
             sem_post(&sync_sem);
             buffer->components--;
             memcpy((Product*)memory_segment, buffer, sizeof(Product));
-            
-            long duration = calDuration(buffer->tp, ctp);
-            printf("Duration : %ld\n", duration);
+            calDuration(buffer->tp, ctp);
         }
-        sleep(3);
+        
     }
 
 }
 
 long calDuration(struct timespec bt, struct timespec nt) {
-    //long secDuration = nt.tv_sec-bt.tv_sec;
-    long nsecDuratioin = nt.tv_nsec-bt.tv_nsec;
-    if(nsecDuratioin < 0) {
-        nsecDuratioin = 1000000000l + nsecDuratioin;
-    }
-    return nsecDuratioin;
+     if (nt.tv_nsec - bt.tv_nsec < 0)
+            {
+                printf("Client : %ld.%09ld sec\n", nt.tv_sec - bt.tv_sec - 1, nt.tv_nsec - bt.tv_nsec + 1000000000);
+            }
+            else
+            {
+                printf("Client : %ld.%09ld sec\n", nt.tv_sec - bt.tv_sec, nt.tv_nsec - bt.tv_nsec);
+            }
 }
 
 void choiceKey(key_t *key)
