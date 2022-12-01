@@ -17,7 +17,7 @@ void *makeCar(void *ptr);
 void *paintCar(void *ptr);
 void *inspectCar(void *ptr);
 void getComponents();
-long calDuration(struct timespec bt, struct timespec nt);
+void calDuration(struct timespec begin, struct timespec end);
 
 static sem_t sync_sem;
 int components = 0;
@@ -106,19 +106,23 @@ void main()
     //printf("point 10\n");
     while (1)
     {
-        buffer = (Product*)memory_segment;
-        clock_gettime(CLOCK_MONOTONIC, &ctp);
+        //clock_gettime(CLOCK_MONOTONIC, &ctp);
         //printf("check buffer : %d\n", buffer->components);
         //printf("check components : %d\n", components);
 
-        if (components < 10 && buffer->components > 0)
+        if (components < 10 && ((Product*)memory_segment)->components > 0)
         {
-            printf("component get ! \n");
+            
+            clock_gettime(CLOCK_MONOTONIC, &ctp);
+            buffer = (Product*)memory_segment;
+            buffer->components--;
+            memcpy((Product*)memory_segment, buffer, sizeof(Product));
+            
+            //printf("component get ! \n");
             sem_wait(&sync_sem);
             components++;
             sem_post(&sync_sem);
-            buffer->components--;
-            memcpy((Product*)memory_segment, buffer, sizeof(Product));
+            
             calDuration(buffer->tp, ctp);
         }
         
@@ -126,15 +130,14 @@ void main()
 
 }
 
-long calDuration(struct timespec bt, struct timespec nt) {
-     if (nt.tv_nsec - bt.tv_nsec < 0)
-            {
-                printf("Client : %ld.%09ld sec\n", nt.tv_sec - bt.tv_sec - 1, nt.tv_nsec - bt.tv_nsec + 1000000000);
-            }
-            else
-            {
-                printf("Client : %ld.%09ld sec\n", nt.tv_sec - bt.tv_sec, nt.tv_nsec - bt.tv_nsec);
-            }
+void calDuration(struct timespec begin, struct timespec end) {
+     if (end.tv_nsec - begin.tv_nsec < 0){
+        printf("Client : %ld.%09ld sec\n", end.tv_sec - begin.tv_sec - 1, end.tv_nsec - begin.tv_nsec + 1000000000);
+    }
+    else
+    {
+        printf("Client : %ld.%09ld sec\n", end.tv_sec - begin.tv_sec, end.tv_nsec - begin.tv_nsec);
+    }
 }
 
 void choiceKey(key_t *key)
@@ -190,14 +193,14 @@ void *makeCar(void *ptr)
             components--; // 부품 갯수 빼주는 녀석
             sem_post(&sync_sem);
 
-            sleep(3);
+            //sleep(3);
             current_made_car->next = (Car *)malloc(sizeof(Car));
             current_made_car = current_made_car->next;
             current_made_car->isCreated = true;
             current_made_car->isPainted = false;
             current_made_car->isInspected = false;
             current_made_car->next = NULL;
-            printf("car %d is created, client have %d components\n", i, components);
+            //printf("car %d is created, client have %d components\n", i, components);
             i++;
         }
     }
@@ -211,10 +214,10 @@ void *paintCar(void *ptr)
     {
         if ((current_painted_car->next != NULL) && current_painted_car->next->isCreated)
         {
-            sleep(1);
+            //sleep(1);
             current_painted_car = current_painted_car->next;
             current_painted_car->isPainted = true;
-            printf("car %d is painted\n", i);
+            //printf("car %d is painted\n", i);
             i++;
         }
     }
@@ -228,12 +231,12 @@ void *inspectCar(void *ptr)
     {
         if (current_inspect_target->next != NULL && current_inspect_target->next->isPainted)
         {
-            sleep(2);
+            //sleep(2);
             Car *inpected_car = current_inspect_target;
             current_inspect_target = current_inspect_target->next;
             current_inspect_target->isInspected = true;
             free(inpected_car);
-            printf("car %d is inspected\n", i);
+            //printf("car %d is inspected\n", i);
             i++;
         }
     }
