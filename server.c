@@ -81,7 +81,7 @@ void provide(void *memory_segment, int clientnum) {
         clock_gettime(CLOCK_MONOTONIC, &buffer->tp);
         memcpy((Product*)memory_segment, buffer, memsize);
     }
-    usleep(1000);
+    sleep(1);
 }
 
 void* componentsFactory() {
