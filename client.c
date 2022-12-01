@@ -106,8 +106,8 @@ void main()
     //printf("point 10\n");
     while (1)
     {
-        clock_gettime(CLOCK_MONOTONIC, &ctp);
         buffer = (Product*)memory_segment;
+        clock_gettime(CLOCK_MONOTONIC, &ctp);
         //printf("check buffer : %d\n", buffer->components);
         //printf("check components : %d\n", components);
 
