@@ -27,7 +27,7 @@ void main() {
     int initvalue = -1;
     int clientnum=0;
     int memsize = MEMSIZE;
-    key_t keys[] = {(key_t)60110, (key_t)60111, (key_t)60112, (key_t)60113, (key_t)60114, (key_t)60115, (key_t)60116, (key_t)60117, (key_t)60118, (key_t)60119}; // 이거 외 상수로 하믄 않됨?
+    key_t keys[] = {(key_t)60110, (key_t)60111, (key_t)60112, (key_t)60113, (key_t)60114, (key_t)60115, (key_t)60116, (key_t)60117, (key_t)60118, (key_t)60119};
     pthread_t threads[3];
     int rc;
     void *memory_segment=NULL;
